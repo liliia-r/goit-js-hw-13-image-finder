@@ -11,8 +11,8 @@ export default {
       .then(res => res.json())
       .then(data => {
         this.nextPage();
-        return data.hits;
         console.log(data);
+        return data.hits;
       })
       .catch(error => console.log(error));
   },

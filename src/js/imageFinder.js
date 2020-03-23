@@ -1,6 +1,9 @@
 import imageTemplate from '../templates/image.hbs';
 import apiService from './apiService';
 import * as basicLightbox from 'basiclightbox';
+import PNotify from 'pnotify/dist/es/PNotify.js';
+import PNotifyStyleMaterial from 'pnotify/dist/es/PNotifyStyleMaterial.js';
+import InfiniteScroll from 'infinite-scroll';
 
 const refs = {
   inputSearch: document.querySelector('input'),
@@ -14,6 +17,7 @@ const refs = {
 refs.searchForm.addEventListener('submit', searchImage);
 refs.loadMoreBtn.addEventListener('click', loadMore);
 refs.loadMoreBtn.addEventListener('click', scroll);
+refs.ul.addEventListener('click', modal);
 
 function renderImage(images) {
   refs.ul.insertAdjacentHTML('beforeend', imageTemplate(images));
@@ -34,16 +38,28 @@ function searchImage(e) {
 function scroll() {
   setTimeout(() => {
     window.scrollTo({
-      top: +window.scrollY + 900,
+      top: +window.scrollY + 700,
       behavior: 'smooth',
     });
   }, 500);
 }
 
+function pnotifyInfo(images) {
+  if (!images.length) {
+    PNotify.defaults.icons = 'material';
+    PNotify.error({
+      title: 'Oh No!',
+      text: 'Enter query',
+      delay: 3000,
+    });
+  } else {
+    renderImage(images);
+  }
+}
 function loadMore(input) {
   apiService
     .apiService(input)
-    .then(images => renderImage(images))
+    .then(images => pnotifyInfo(images))
     .catch(error => console.log(error));
 }
 
@@ -55,7 +71,32 @@ function apiServices(input) {
   apiService
     .apiService(input)
     .then(images => {
-      renderImage(images);
+      pnotifyInfo(images);
     })
     .catch(error => console.log(error));
 }
+
+// Modal
+function modal(e) {
+  if (!e.target.dataset.source) {
+    return;
+  } else {
+    const instance = basicLightbox.create(
+      `
+    <img src=${e.target.dataset.source} width="800" height="600">
+`,
+    );
+    instance.show();
+  }
+}
+
+// Infinite scroll
+// function infScrollInstance() {
+//   new InfiniteScroll(refs.ul, {
+//     responseType: 'text',
+//     history: false,
+//     path() {
+//       return `https://jsonplaceholder.typicode.com/posts?_page=${this.pageIndex}`;
+//     },
+//   });
+// }
